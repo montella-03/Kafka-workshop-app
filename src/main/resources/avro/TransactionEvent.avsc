@@ -1,0 +1,30 @@
+{
+  "namespace": "com.example.demo.event",
+  "type": "record",
+  "name": "TransactionEvent",
+  "fields": [
+    {
+      "name": "transactionId",
+      "type": "string"
+    },
+    {
+      "name": "userId",
+      "type": "string"
+    },
+    {
+      "name": "amount",
+      "type": "double"
+    },
+    {
+      "name": "currency",
+      "type": "string"
+    },
+    {
+      "name": "timestamp",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    }
+  ]
+}

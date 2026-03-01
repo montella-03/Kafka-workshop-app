@@ -1,0 +1,140 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: conduktor-postgres
+    environment:
+      POSTGRES_DB: conduktor-console
+      POSTGRES_USER: conduktor
+      POSTGRES_PASSWORD: conduktor
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U conduktor -d conduktor-console" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - kafka-demo-net
+
+  kafka:
+    build:
+      context: .
+      dockerfile: docker/kafka/Dockerfile
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "7071:7071"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://kafka:29093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_JMX_PORT: 9999
+      KAFKA_JMX_HOSTNAME: kafka
+      KAFKA_OPTS: -javaagent:/opt/jmx-exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx-exporter/kafka-jmx.yml
+    healthcheck:
+      test: [ "CMD", "bash", "-c", "KAFKA_OPTS='' cub kafka-ready -b localhost:9092 1 20" ]
+      interval: 10s
+      timeout: 10s
+      retries: 8
+    networks:
+      - kafka-demo-net
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.7.2
+    container_name: schema-registry
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:29092
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/subjects" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - kafka-demo-net
+
+  conduktor:
+    image: conduktor/conduktor-console:latest
+    container_name: conduktor
+    depends_on:
+      postgres:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      CDK_IN_CONF_FILE: /opt/conduktor/platform-config.yaml
+      CDK_DATABASE_URL: postgresql://conduktor:conduktor@postgres:5432/conduktor-console
+    volumes:
+      - ./conduktor/platform-config.yaml:/opt/conduktor/platform-config.yaml:ro
+    networks:
+      - kafka-demo-net
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kafka-transaction-demo-app
+    depends_on:
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8082
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SCHEMA_REGISTRY_URL: http://schema-registry:8081
+    networks:
+      - kafka-demo-net
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    depends_on:
+      - app
+      - kafka
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - kafka-demo-net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./src/main/resources/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./src/main/resources/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+      - kafka-demo-net
+
+networks:
+  kafka-demo-net:
+    driver: bridge

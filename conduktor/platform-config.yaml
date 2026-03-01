@@ -1,0 +1,15 @@
+admin:
+  email: "admin@demo.local"
+  password: "Admin@1234"
+  organization: "Chris Kafka Org"
+
+platform:
+  local:
+    clusters:
+      - id: "local-kafka-cluster"
+        name: "Local Kafka"
+        color: "#001f3f"
+        bootstrapServers: "kafka:29092"
+        schemaRegistry:
+          type: "confluent"
+          url: "http://schema-registry:8081"
