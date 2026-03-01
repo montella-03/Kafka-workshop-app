@@ -1,18 +1,19 @@
 package com.example.demo.service;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.example.demo.config.KafkaTopicsProperties;
 import com.example.demo.dto.TransactionRequest;
 import com.example.demo.event.TransactionEvent;
-import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.kafka.core.KafkaOperations;
 import org.springframework.kafka.core.KafkaTemplate;
+
+import java.time.Instant;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class TransactionEventProducerTest {
 

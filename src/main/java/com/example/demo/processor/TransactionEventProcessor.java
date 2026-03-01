@@ -3,12 +3,13 @@ package com.example.demo.processor;
 import com.example.demo.config.KafkaTopicsProperties;
 import com.example.demo.event.TransactionEvent;
 import com.example.demo.event.TransactionReceivedEvent;
-import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
+
+import java.time.Instant;
 
 @Component
 public class TransactionEventProcessor {

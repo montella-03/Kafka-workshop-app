@@ -3,11 +3,12 @@ package com.example.demo.service;
 import com.example.demo.config.KafkaTopicsProperties;
 import com.example.demo.dto.TransactionRequest;
 import com.example.demo.event.TransactionEvent;
-import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
 
 @Service
 public class TransactionEventProducer {

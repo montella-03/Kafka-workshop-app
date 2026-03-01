@@ -1,12 +1,13 @@
 package com.example.demo.consumer;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.example.demo.config.KafkaTopicsProperties;
 import com.example.demo.event.TransactionReceivedEvent;
+import org.junit.jupiter.api.Test;
+
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class TransactionReceivedConsumerTest {
 

@@ -2,13 +2,14 @@ package com.example.demo.consumer;
 
 import com.example.demo.config.KafkaTopicsProperties;
 import com.example.demo.event.TransactionReceivedEvent;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 public class TransactionReceivedConsumer {
